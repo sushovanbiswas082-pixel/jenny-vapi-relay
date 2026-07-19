@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#12172B">
+<title>Jenny</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink: #12172B;
+    --ink-2: #1B2140;
+    --ink-3: #232B4D;
+    --paper: #F2EDE4;
+    --slate: #8A93B3;
+    --amber: #E8A85C;
+    --amber-dim: #B9853F;
+    --sage: #8FAE8B;
+    --rust: #C1584B;
+    --rule: rgba(242,237,228,0.10);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: radial-gradient(120% 140% at 15% -10%, #1a2145 0%, var(--ink) 45%, #0d1122 100%);
+    color: var(--paper);
+    font-family: 'Inter', sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding: 28px 14px 60px;
+  }
+  .app{ width:100%; max-width: 460px; }
+
+  .header{ display:flex; align-items:flex-start; justify-content:space-between; margin-bottom: 22px; }
+  .brand{ display:flex; gap:12px; align-items:center; }
+  .monogram{
+    width:46px;height:46px; border-radius:50%; border:1px solid var(--amber-dim);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Fraunces', serif; font-style:italic; font-size:22px; color:var(--amber);
+    position:relative; flex-shrink:0;
+  }
+  .monogram::after{ content:""; position:absolute; inset:-5px; border-radius:50%; border:1px solid rgba(232,168,92,0.25); }
+  .brand-text h1{ font-family:'Fraunces', serif; font-weight:500; font-size: 26px; margin:0; letter-spacing:0.2px; }
+  .brand-text p{ margin:2px 0 0; font-size:12.5px; color:var(--slate); font-style:italic; font-family:'Fraunces', serif; }
+  .clock{ font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--slate); text-align:right; line-height:1.5; padding-top:6px; white-space:pre-line; }
+
+  .pills{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:24px; }
+  .pill{
+    font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:0.03em;
+    padding:6px 10px 6px 8px; border-radius:20px; border:1px solid var(--rule);
+    display:flex; align-items:center; gap:6px; color:var(--slate);
+    background: rgba(255,255,255,0.02); cursor:pointer; user-select:none;
+    transition: border-color .2s, color .2s;
+  }
+  .pill .dot{ width:6px;height:6px;border-radius:50%; background: var(--slate); transition: background .2s; }
+  .pill.on{ color: var(--paper); border-color: rgba(143,174,139,0.4); }
+  .pill.on .dot{ background: var(--sage); box-shadow: 0 0 6px rgba(143,174,139,0.7); }
+
+  .mic-panel{
+    border:1px solid var(--rule); border-radius:18px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    padding: 26px 20px 20px; text-align:center; margin-bottom: 26px; position:relative; overflow:hidden;
+  }
+  .mic-btn{
+    width:78px;height:78px; border-radius:50%; border:1px solid var(--amber-dim);
+    background: radial-gradient(circle at 35% 30%, #2a2148, #171c37 70%);
+    display:flex;align-items:center;justify-content:center; margin: 0 auto 14px; cursor:pointer;
+    position:relative; transition: transform .15s ease, box-shadow .3s ease;
+  }
+  .mic-btn:active{ transform: scale(0.95); }
+  .mic-btn.listening{ box-shadow: 0 0 0 8px rgba(232,168,92,0.08), 0 0 26px rgba(232,168,92,0.35); border-color: var(--amber); }
+  .mic-btn svg{ width:26px; height:26px; }
+  .mic-label{ font-family:'IBM Plex Mono', monospace; font-size:11px; color: var(--slate); letter-spacing:0.04em; }
+  .mic-label.active{ color: var(--amber); }
+
+  .waveline{ display:flex; align-items:center; justify-content:center; gap:3px; height:26px; margin: 6px 0 10px; }
+  .waveline span{ width:3px; border-radius:2px; background: var(--amber-dim); height:6px; transition: height .18s ease, background .18s ease; }
+  .waveline.active span{ background: var(--amber); }
+
+  .transcript{ font-family:'Fraunces', serif; font-style:italic; font-size:15px; color: var(--paper); min-height: 22px; opacity:0.9; }
+  .transcript.placeholder{ color: var(--slate); }
+
+  .fallback{ display:flex; gap:8px; margin-top:16px; }
+  .fallback input{
+    flex:1; background: rgba(255,255,255,0.04); border:1px solid var(--rule); border-radius:10px;
+    padding:10px 12px; color: var(--paper); font-family:'Inter', sans-serif; font-size:13.5px; outline:none;
+  }
+  .fallback input:focus{ border-color: var(--amber-dim); }
+  .fallback input::placeholder{ color: var(--slate); }
+  .fallback button{
+    background: var(--amber); border:none; border-radius:10px; padding:0 16px; color: var(--ink);
+    font-weight:600; font-size:13px; cursor:pointer; font-family:'Inter', sans-serif;
+  }
+  .fallback button:hover{ background:#f0b56b; }
+
+  .log-head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:12px; }
+  .log-head h2{ font-family:'Fraunces', serif; font-weight:500; font-size:17px; margin:0; }
+  .log-head span{ font-family:'IBM Plex Mono', monospace; font-size:10.5px; color: var(--slate); }
+
+  .entry{ display:flex; gap:12px; padding: 13px 0; border-top:1px solid var(--rule); animation: fadein .4s ease; }
+  @keyframes fadein{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);} }
+
+  .entry-time{ font-family:'IBM Plex Mono', monospace; font-size:10.5px; color: var(--slate); width:44px; flex-shrink:0; padding-top:2px; }
+  .entry-icon{ width:26px;height:26px; border-radius:50%; background: rgba(255,255,255,0.04); display:flex;align-items:center;justify-content:center; flex-shrink:0; font-size:12px; }
+  .entry-body{ flex:1; }
+  .entry-mod{ font-family:'IBM Plex Mono', monospace; font-size:9.5px; letter-spacing:0.06em; text-transform:uppercase; color: var(--slate); margin-bottom:2px; }
+  .entry-text{ font-size:13.5px; line-height:1.45; color: var(--paper); }
+
+  .entry.alert .entry-icon{ background: rgba(193,88,75,0.15); }
+  .entry.alert .entry-mod{ color: var(--rust); }
+  .entry.good .entry-icon{ background: rgba(143,174,139,0.15); }
+  .entry.good .entry-mod{ color: var(--sage); }
+
+  .approve-row{ display:flex; gap:8px; margin-top:8px; }
+  .approve-row input{
+    width:110px; background: rgba(255,255,255,0.05); border:1px solid rgba(193,88,75,0.35); border-radius:8px;
+    padding:7px 9px; color: var(--paper); font-family:'IBM Plex Mono', monospace; font-size:12px; outline:none; letter-spacing:0.1em;
+  }
+  .approve-row button{ background: var(--rust); border:none; border-radius:8px; padding:0 14px; color: var(--paper); font-weight:600; font-size:12px; cursor:pointer; }
+  .approve-row.done{ display:none; }
+  .approved-tag{ display:none; font-family:'IBM Plex Mono', monospace; font-size:10.5px; color: var(--sage); margin-top:6px; }
+  .approved-tag.show{ display:block; }
+
+  .vapi-input{
+    background: rgba(255,255,255,0.04); border:1px solid var(--rule); border-radius:10px;
+    padding:10px 12px; color: var(--paper); font-family:'Inter', sans-serif; font-size:13px; outline:none; width:100%;
+  }
+  .vapi-input:focus{ border-color: var(--amber-dim); }
+  .vapi-input::placeholder{ color: var(--slate); }
+
+  .panel-head{ display:flex; align-items:center; gap:8px; margin-bottom:14px; }
+  .panel-head .ttl{ font-family:'Fraunces', serif; font-size:15px; }
+  .panel-head .sub{ font-family:'IBM Plex Mono', monospace; font-size:10px; color:var(--slate); }
+
+  .contact-row{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    padding:10px 0; border-top:1px solid var(--rule);
+  }
+  .contact-row:first-of-type{ border-top:none; }
+  .contact-name{ font-size:13.5px; font-weight:600; }
+  .contact-num{ font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--slate); }
+  .contact-del{
+    background:none; border:1px solid var(--rule); color:var(--slate); border-radius:8px;
+    padding:5px 10px; font-size:11px; cursor:pointer; font-family:'Inter', sans-serif;
+  }
+  .contact-del:hover{ border-color: var(--rust); color: var(--rust); }
+  .add-contact{ display:flex; gap:8px; margin-top:14px; }
+  .add-contact input{ flex:1; }
+  .add-contact button{
+    background: var(--sage); border:none; border-radius:10px; padding:0 16px; color: var(--ink);
+    font-weight:600; font-size:13px; cursor:pointer; font-family:'Inter', sans-serif;
+  }
+  .empty-hint{ font-size:12px; color:var(--slate); font-style:italic; padding:8px 0; }
+
+  .footnote{ margin-top: 28px; padding-top:16px; border-top:1px solid var(--rule); font-size:11.5px; line-height:1.6; color: var(--slate); }
+  .footnote b{ color: var(--paper); font-weight:600; }
+  .saved-tag{ font-family:'IBM Plex Mono', monospace; font-size:10px; color: var(--sage); margin-top:6px; min-height:14px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="header">
+    <div class="brand">
+      <div class="monogram">J</div>
+      <div class="brand-text">
+        <h1>Jenny</h1>
+        <p>Your day, handled.</p>
+      </div>
+    </div>
+    <div class="clock" id="clock">—</div>
+  </div>
+
+  <div class="pills" id="pills">
+    <div class="pill on" data-name="Calendar"><span class="dot"></span>Calendar</div>
+    <div class="pill on" data-name="Mail"><span class="dot"></span>Mail</div>
+    <div class="pill" data-name="Social"><span class="dot"></span>Social</div>
+    <div class="pill" data-name="Orders"><span class="dot"></span>Orders</div>
+  </div>
+
+  <div class="mic-panel">
+    <div class="mic-btn" id="micBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#E8A85C" stroke-width="1.6">
+        <rect x="9" y="2" width="6" height="12" rx="3"></rect>
+        <path d="M5 10a7 7 0 0 0 14 0"></path>
+        <line x1="12" y1="19" x2="12" y2="22"></line>
+      </svg>
+    </div>
+    <div class="mic-label" id="micLabel">tap to talk</div>
+    <div class="waveline" id="waveline">
+      <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <div class="transcript placeholder" id="transcript">"Jenny, call Mom" or "Jenny, add dinner Friday at 7"</div>
+
+    <div class="fallback">
+      <input type="text" id="textInput" placeholder="or type a command…">
+      <button id="sendBtn">Send</button>
+    </div>
+    <div style="font-size:11px; color:var(--slate); margin-top:10px;">Tap once to start listening — Jenny keeps listening until you tap again. Only microphone access is used, nothing else on your phone.</div>
+  </div>
+
+  <div class="mic-panel" style="text-align:left;">
+    <div class="panel-head">
+      <div class="entry-icon" style="background:rgba(143,174,139,0.12);">👤</div>
+      <div>
+        <div class="ttl">Contacts</div>
+        <div class="sub">say "call [name]" to dial them</div>
+      </div>
+    </div>
+    <div id="contactList"></div>
+    <div class="add-contact">
+      <input type="text" id="newContactName" placeholder="Name" class="vapi-input">
+      <input type="text" id="newContactPhone" placeholder="+91..." class="vapi-input">
+      <button id="addContactBtn">Add</button>
+    </div>
+  </div>
+
+  <div class="mic-panel" id="vapiPanel" style="text-align:left;">
+    <div class="panel-head">
+      <div class="entry-icon" style="background:rgba(232,168,92,0.12);">📞</div>
+      <div>
+        <div class="ttl">Dial as Jenny</div>
+        <div class="sub">via Vapi — settings save automatically</div>
+      </div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:8px;">
+      <input type="text" id="vapiRelay" placeholder="Relay URL, e.g. https://your-relay.vercel.app/api/call" class="vapi-input">
+      <input type="text" id="vapiAssistant" placeholder="Assistant ID" class="vapi-input">
+      <input type="text" id="vapiPhoneNumId" placeholder="Phone Number ID (the number Jenny calls from)" class="vapi-input">
+      <input type="text" id="vapiCustomer" placeholder="Number to call, e.g. +14155551234" class="vapi-input">
+      <button id="vapiCallBtn" style="background:var(--amber); border:none; border-radius:10px; padding:11px; color:var(--ink); font-weight:600; font-size:13px; cursor:pointer; font-family:'Inter',sans-serif;">Call now</button>
+      <div id="vapiStatus" style="font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--slate); min-height:16px;"></div>
+      <div class="saved-tag" id="savedTag"></div>
+    </div>
+    <div style="font-size:11px; color:var(--slate); line-height:1.5; margin-top:10px;">
+      Your Vapi API key lives on your relay server, never in this browser tab. IDs come from your <a href="https://dashboard.vapi.ai" target="_blank" style="color:var(--amber);">Vapi dashboard</a>.
+    </div>
+  </div>
+
+  <div class="log-head">
+    <h2>Today's log</h2>
+    <span id="entryCount">0 entries</span>
+  </div>
+  <div id="log"></div>
+
+  <div class="footnote">
+    <b>Calendar and Mail here are a demo.</b> Calling is real — wired through your Vapi relay. Jenny will always pause and ask you directly for OTPs or passwords — never store or guess them.
+  </div>
+
+</div>
+
+<script>
+const log = document.getElementById('log');
+const entryCount = document.getElementById('entryCount');
+const transcript = document.getElementById('transcript');
+const micBtn = document.getElementById('micBtn');
+const micLabel = document.getElementById('micLabel');
+const waveline = document.getElementById('waveline');
+const textInput = document.getElementById('textInput');
+const sendBtn = document.getElementById('sendBtn');
+const pills = document.querySelectorAll('.pill');
+
+let count = 0;
+
+function updateClock(){
+  const d = new Date();
+  document.getElementById('clock').textContent =
+    d.toLocaleDateString(undefined,{weekday:'short', month:'short', day:'numeric'}) + '\n' +
+    d.toLocaleTimeString(undefined,{hour:'2-digit', minute:'2-digit'});
+}
+updateClock();
+setInterval(updateClock, 30000);
+
+pills.forEach(p => { p.addEventListener('click', () => p.classList.toggle('on')); });
+
+const icons = { Calendar: '📅', Mail: '✉️', Social: '✎', Orders: '⚠', Calling: '📞' };
+
+function timeNow(){
+  const d = new Date();
+  return d.toLocaleTimeString(undefined,{hour:'numeric', minute:'2-digit'});
+}
+
+function addEntry({module, text, alert=false, good=false}){
+  count++;
+  entryCount.textContent = count + (count===1 ? ' entry' : ' entries');
+  const div = document.createElement('div');
+  div.className = 'entry' + (alert ? ' alert' : '') + (good ? ' good' : '');
+  const id = 'appr-' + count;
+  div.innerHTML = `
+    <div class="entry-time">${timeNow()}</div>
+    <div class="entry-icon">${icons[module] || '•'}</div>
+    <div class="entry-body">
+      <div class="entry-mod">${module}${alert ? ' · needs you' : ''}</div>
+      <div class="entry-text">${text}</div>
+      ${alert ? `
+        <div class="approve-row" id="${id}">
+          <input type="text" placeholder="Enter OTP" maxlength="6">
+          <button onclick="approve('${id}')">Confirm</button>
+        </div>
+        <div class="approved-tag" id="${id}-tag">✓ Approved by you — order placed</div>
+      ` : ''}
+    </div>
+  `;
+  log.prepend(div);
+}
+
+function approve(id){
+  document.getElementById(id).classList.add('done');
+  document.getElementById(id+'-tag').classList.add('show');
+}
+window.approve = approve;
+
+// --- Persisted settings (relay URL, assistant ID, phone number ID) ---
+const relayInput = document.getElementById('vapiRelay');
+const assistantInput = document.getElementById('vapiAssistant');
+const phoneNumIdInput = document.getElementById('vapiPhoneNumId');
+const customerInput = document.getElementById('vapiCustomer');
+const savedTag = document.getElementById('savedTag');
+
+function loadSettings(){
+  try {
+    const s = JSON.parse(localStorage.getItem('jenny_settings') || '{}');
+    if(s.relay) relayInput.value = s.relay;
+    if(s.assistant) assistantInput.value = s.assistant;
+    if(s.phoneNumId) phoneNumIdInput.value = s.phoneNumId;
+  } catch(e){}
+}
+function saveSettings(){
+  const s = {
+    relay: relayInput.value.trim(),
+    assistant: assistantInput.value.trim(),
+    phoneNumId: phoneNumIdInput.value.trim()
+  };
+  localStorage.setItem('jenny_settings', JSON.stringify(s));
+  savedTag.textContent = '✓ saved';
+  setTimeout(() => { savedTag.textContent = ''; }, 1500);
+}
+[relayInput, assistantInput, phoneNumIdInput].forEach(el => {
+  el.addEventListener('change', saveSettings);
+});
+loadSettings();
+
+// --- Contacts (saved permanently in this browser) ---
+const contactList = document.getElementById('contactList');
+const newContactName = document.getElementById('newContactName');
+const newContactPhone = document.getElementById('newContactPhone');
+const addContactBtn = document.getElementById('addContactBtn');
+
+function loadContacts(){
+  try { return JSON.parse(localStorage.getItem('jenny_contacts') || '[]'); }
+  catch(e){ return []; }
+}
+function saveContacts(list){
+  localStorage.setItem('jenny_contacts', JSON.stringify(list));
+}
+function renderContacts(){
+  const list = loadContacts();
+  contactList.innerHTML = '';
+  if(list.length === 0){
+    contactList.innerHTML = '<div class="empty-hint">No contacts yet — add one below.</div>';
+    return;
+  }
+  list.forEach((c, i) => {
+    const row = document.createElement('div');
+    row.className = 'contact-row';
+    row.innerHTML = `
+      <div>
+        <div class="contact-name">${c.name}</div>
+        <div class="contact-num">${c.phone}</div>
+      </div>
+      <button class="contact-del" data-i="${i}">Remove</button>
+    `;
+    contactList.appendChild(row);
+  });
+  contactList.querySelectorAll('.contact-del').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const list = loadContacts();
+      list.splice(parseInt(btn.dataset.i), 1);
+      saveContacts(list);
+      renderContacts();
+    });
+  });
+}
+renderContacts();
+
+addContactBtn.addEventListener('click', () => {
+  const name = newContactName.value.trim();
+  const phone = newContactPhone.value.trim();
+  if(!name || !phone) return;
+  const list = loadContacts();
+  list.push({name, phone});
+  saveContacts(list);
+  newContactName.value = '';
+  newContactPhone.value = '';
+  renderContacts();
+});
+
+function findContact(name){
+  const list = loadContacts();
+  const lower = name.toLowerCase();
+  return list.find(c => c.name.toLowerCase().includes(lower) || lower.includes(c.name.toLowerCase()));
+}
+
+// --- Vapi calling (shared by manual button + voice command) ---
+const vapiCallBtn = document.getElementById('vapiCallBtn');
+const vapiStatus = document.getElementById('vapiStatus');
+
+async function placeCall(number, label){
+  const relayUrl = relayInput.value.trim();
+  const assistantId = assistantInput.value.trim();
+  const phoneNumberId = phoneNumIdInput.value.trim();
+
+  if(!relayUrl || !assistantId || !phoneNumberId || !number){
+    vapiStatus.style.color = 'var(--rust)';
+    vapiStatus.textContent = 'Missing relay URL, assistant ID, phone number ID, or a number to call.';
+    addEntry({module:'Orders', text:`Couldn't call ${label || number} — Vapi settings are incomplete. Fill in the Dial as Jenny panel first.`, alert:false});
+    return;
+  }
+
+  vapiStatus.style.color = 'var(--slate)';
+  vapiStatus.textContent = 'Dialing ' + (label || number) + '…';
+  vapiCallBtn.disabled = true;
+
+  try {
+    const res = await fetch(relayUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ assistantId, phoneNumberId, customer: { number } })
+    });
+    const data = await res.json();
+
+    if(res.ok){
+      vapiStatus.style.color = 'var(--sage)';
+      vapiStatus.textContent = '✓ Call started — id: ' + (data.id || 'unknown');
+      addEntry({module:'Calling', text:`Called ${label ? label + ' (' + number + ')' : number} as Jenny via Vapi.`, good:true});
+    } else {
+      vapiStatus.style.color = 'var(--rust)';
+      vapiStatus.textContent = 'Relay/Vapi error: ' + (data.message || res.status);
+      addEntry({module:'Orders', text:`Call to ${label || number} failed: ${data.message || res.status}`});
+    }
+  } catch(err){
+    vapiStatus.style.color = 'var(--rust)';
+    vapiStatus.textContent = 'Could not reach the relay. Check the Relay URL is correct and deployed.';
+    addEntry({module:'Orders', text:`Call to ${label || number} failed — couldn't reach the relay.`});
+  } finally {
+    vapiCallBtn.disabled = false;
+  }
+}
+
+vapiCallBtn.addEventListener('click', () => {
+  placeCall(customerInput.value.trim(), null);
+});
+
+// --- Command parsing (voice + typed) ---
+function respond(cmd){
+  const lower = cmd.toLowerCase();
+
+  const callMatch = lower.match(/call\s+([a-z ]+?)(?:\s+(?:now|please|pls))?$/i) || lower.match(/^call\s+(.+)/i);
+  if(callMatch){
+    const name = callMatch[1].trim();
+    const contact = findContact(name);
+    if(contact){
+      placeCall(contact.phone, contact.name);
+      return;
+    } else {
+      addEntry({module:'Orders', text:`I don't have "${name}" saved as a contact yet. Add them in the Contacts panel, then try again.`});
+      return;
+    }
+  }
+
+  if(lower.includes('order') || lower.includes('buy')){
+    addEntry({module:'Orders', text:`Found "${cmd.replace(/jenny,?\s*/i,'')}" — ready to check out. Enter the OTP sent to your phone to confirm.`, alert:true});
+  } else if(lower.includes('mail') || lower.includes('email') || lower.includes('reply')){
+    addEntry({module:'Mail', text:`Drafted a reply based on: "${cmd.replace(/jenny,?\s*/i,'')}". Sitting in your drafts for a look before it sends.`});
+  } else if(lower.includes('post') || lower.includes('instagram') || lower.includes('twitter') || lower.includes('linkedin')){
+    addEntry({module:'Social', text:`Scheduled a post: "${cmd.replace(/jenny,?\s*/i,'')}" for your best engagement window today.`});
+  } else {
+    addEntry({module:'Calendar', text:`Done — "${cmd.replace(/jenny,?\s*/i,'')}" is on your calendar.`});
+  }
+}
+
+function runCommand(cmd){
+  if(!cmd.trim()) return;
+  transcript.textContent = '"' + cmd + '"';
+  transcript.classList.remove('placeholder');
+  respond(cmd);
+}
+
+sendBtn.addEventListener('click', () => { runCommand(textInput.value); textInput.value = ''; });
+textInput.addEventListener('keydown', e => { if(e.key === 'Enter'){ runCommand(textInput.value); textInput.value=''; } });
+
+// --- Real voice recognition (uses your phone's mic, nothing else) ---
+const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null;
+let handsFree = false;
+const bars = waveline.querySelectorAll('span');
+let waveInt = null;
+
+if(SpeechRec){
+  recognition = new SpeechRec();
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.lang = 'en-IN';
+
+  recognition.onresult = (event) => {
+    let finalText = '';
+    let interimText = '';
+    for(let i = event.resultIndex; i < event.results.length; i++){
+      const t = event.results[i][0].transcript;
+      if(event.results[i].isFinal) finalText += t;
+      else interimText += t;
+    }
+    if(interimText){
+      transcript.textContent = '"' + interimText + '"';
+      transcript.classList.remove('placeholder');
+    }
+    if(finalText.trim()){
+      runCommand(finalText.trim());
+    }
+  };
+
+  recognition.onerror = (event) => {
+    if(event.error === 'not-allowed' || event.error === 'service-not-allowed'){
+      micLabel.textContent = 'mic permission denied';
+      handsFree = false;
+      micBtn.classList.remove('listening');
+      waveline.classList.remove('active');
+      if(waveInt) clearInterval(waveInt);
+    }
+  };
+
+  recognition.onend = () => {
+    if(handsFree){
+      try { recognition.start(); } catch(e){}
+    } else {
+      micBtn.classList.remove('listening');
+      micLabel.textContent = 'tap to talk';
+      micLabel.classList.remove('active');
+      waveline.classList.remove('active');
+      if(waveInt) clearInterval(waveInt);
+      bars.forEach(b => b.style.height = '6px');
+    }
+  };
+
+  micBtn.addEventListener('click', () => {
+    handsFree = !handsFree;
+    if(handsFree){
+      micBtn.classList.add('listening');
+      micLabel.textContent = 'listening — tap to stop';
+      micLabel.classList.add('active');
+      waveline.classList.add('active');
+      waveInt = setInterval(() => { bars.forEach(b => b.style.height = (6 + Math.random()*20) + 'px'); }, 120);
+      try { recognition.start(); } catch(e){}
+    } else {
+      recognition.stop();
+    }
+  });
+} else {
+  micLabel.textContent = 'voice not supported in this browser';
+  micBtn.style.opacity = '0.4';
+  micBtn.style.cursor = 'not-allowed';
+}
+
+addEntry({module:'Calendar', text:'Synced with your Google Calendar — 3 events today.'});
+addEntry({module:'Mail', text:'Cleared 4 newsletters to a "Later" folder, flagged 1 as needs-reply.'});
+</script>
+
+</body>
+</html>
