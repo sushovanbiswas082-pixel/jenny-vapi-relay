@@ -1,1 +1,9 @@
-
+{
+  "name": "jenny-vapi-relay",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tiny serverless relay so Jenny's app can trigger Vapi calls without exposing the API key in the browser.",
+  "scripts": {
+    "dev": "vercel dev"
+  }
+}
